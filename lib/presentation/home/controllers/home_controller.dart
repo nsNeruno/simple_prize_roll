@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:excel/excel.dart';
+// import 'package:excel/excel.dart';
 import 'package:get/get.dart';
 import 'package:get_controller_plus/get_controller_plus.dart';
 import 'package:simple_prize_roll/domain/constants.dart';
@@ -39,7 +39,7 @@ class HomeController extends GetxControllerPlus {
 
   final randTextController = Get.put(RandomSelectTextController(),);
 
-  void _onExcelRead(Excel excel,) {
+  // void _onExcelRead(Excel excel,) {
     // final sheets = excel.sheets;
     // if (sheets.isNotEmpty) {
     //   final sheet = sheets[sheets.keys.elementAt(0,)]!;
@@ -60,7 +60,7 @@ class HomeController extends GetxControllerPlus {
     //   );
     //   _entries.value = entries.toList(growable: false,);
     // }
-  }
+  // }
 
   void _showRandom() {
     final List<RollEntry> pool = _unrolledEntries;
@@ -116,13 +116,13 @@ class HomeController extends GetxControllerPlus {
   @override
   void onInit() {
     super.onInit();
-    Get.find<ExcelReaderService>().onExcelRead.listen(
-      (excel) {
-        if (excel != null) {
-          _onExcelRead(excel,);
-        }
-      },
-    );
+    // Get.find<ExcelReaderService>().onExcelRead.listen(
+    //   (excel) {
+    //     if (excel != null) {
+    //       _onExcelRead(excel,);
+    //     }
+    //   },
+    // );
     final entries = globalEntries.map(
       (e) => RollEntry(id: e,),
     ).toList();

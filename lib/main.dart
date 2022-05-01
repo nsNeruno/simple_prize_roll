@@ -38,15 +38,15 @@ class SimplePrizeRollApp extends StatelessWidget {
       initialRoute: AppPages.homePage,
       initialBinding: BindingsBuilder(
         () {
-          // Get.put(
-          //   MenuProviderService(),
-          // );
-          // Get.put(
-          //   InputFileProviderService(),
-          // );
-          // Get.put(
-          //   ExcelReaderService(),
-          // );
+          Get.put(
+            MenuProviderService(),
+          );
+          Get.put(
+            InputFileProviderService(),
+          );
+          Get.put(
+            ExcelReaderService(),
+          );
         },
       ),
     );

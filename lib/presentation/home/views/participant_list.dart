@@ -24,7 +24,7 @@ class ParticipantList extends StatelessWidget {
         ),
         child: Obx(
           () {
-            final entries = controller.entries ?? [];
+            final entries = controller.unrolledEntries;
             return ListTable(
               colCount: 1,
               itemCount: entries.length,

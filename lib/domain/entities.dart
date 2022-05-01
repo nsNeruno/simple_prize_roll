@@ -1,8 +1,8 @@
 class RollEntry {
 
-  RollEntry({required this.id, this.flag,});
+  RollEntry({required this.id, this.fixedPrize,});
 
   final String id;
-  final String? flag;
+  final String? fixedPrize;
   String? wonPrize;
 }

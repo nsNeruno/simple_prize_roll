@@ -12,9 +12,6 @@ class HomeController extends GetxControllerPlus {
 
   HomeController._();
 
-  final _entries = <RollEntry>[].obs;
-  List<RollEntry> get entries => _entries;
-
   final _rolledEntries = <RollEntry>[].obs;
   List<RollEntry> get rolledEntries => _rolledEntries;
 
@@ -24,19 +21,24 @@ class HomeController extends GetxControllerPlus {
   final _selectedEntry = Rxn<RollEntry>();
   RollEntry? get selectedEntry => _selectedEntry.value;
 
-  final _prizes = <String>[].obs;
-  String? get currentPrize {
+  final _prizes = <RollPrize>[].obs;
+  RollPrize? get currentPrize {
     if (_prizes.isNotEmpty) {
       return _prizes.first;
     }
     return null;
   }
 
-  late final Random _random = Random(DateTime.now().millisecondsSinceEpoch,);
+  late final Random _random = Random(
+    DateTime.now().millisecondsSinceEpoch,
+  );
+
   Timer? _waitTimer;
   bool get isRolling => _waitTimer?.isActive == true;
 
-  final randTextController = Get.put(RandomSelectTextController(),);
+  final randTextController = Get.put(
+    RandomSelectTextController(),
+  );
 
   List<RollEntry> _getEntrants(Sheet sheet,) {
     return sheet.rows.map(
@@ -59,39 +61,50 @@ class HomeController extends GetxControllerPlus {
     ).whereType<RollEntry>().toList();
   }
 
-  List<String> _getPrizes(Sheet sheet,) {
-    final prizesMap = <String, int>{};
+  List<RollPrize> _getRollPrizes(Sheet sheet,) {
+    final prizes = <RollPrize>[];
     for (var row in sheet.rows) {
       String? prizeName;
-      int? count;
+      int count = 1;
+      List<String>? fixedEntries;
       for (int i = 0; i < row.length; i++) {
+        final value = row[i]?.value?.toString();
         switch (i) {
           case 0:
-            prizeName = row[i]?.value.toString();
+            prizeName = value;
             break;
           case 1:
-            final value = row[i]?.value;
             if (value != null) {
-              if (value is num) {
-                count = value.abs().truncate();
-              } else if (value is String) {
-                count = int.tryParse(value,);
+              int? maybeCount = num.tryParse(value,)?.toInt();
+              if (maybeCount != null) {
+                maybeCount = maybeCount.abs();
+                if (maybeCount > 0) {
+                  count = maybeCount;
+                }
               }
             }
             break;
-        }
-        if (prizeName != null) {
-          prizesMap[prizeName] = count ?? 1;
+          case 2:
+            if (value != null && value.isNotEmpty) {
+              fixedEntries = value.split(";",).map((e) => e.trim(),).toList();
+            }
+            break;
         }
       }
+      if (prizeName != null) {
+        prizes.add(
+          RollPrize(
+            name: prizeName,
+            count: count,
+            fixedEntries: fixedEntries,
+          ),
+        );
+      }
     }
-    return prizesMap.entries.map<List<String>>(
-      (entry) => List.generate(entry.value, (_) => entry.key,),
-    ).expand((groups) => groups,).toList();
+    return prizes;
   }
 
   void _reset() {
-    _entries.value = [];
     _unrolledEntries.value = [];
     _rolledEntries.value = [];
     _prizes.value = [];
@@ -108,9 +121,8 @@ class HomeController extends GetxControllerPlus {
       }
       if (prizesSheet != null) {
         final entrants = _getEntrants(entrantSheet,);
-        final prizes = _getPrizes(prizesSheet,);
+        final prizes = _getRollPrizes(prizesSheet,);
 
-        _entries.value = entrants;
         _unrolledEntries.value = entrants;
         _rolledEntries.value = [];
         _prizes.value = prizes;
@@ -139,14 +151,45 @@ class HomeController extends GetxControllerPlus {
     update();
   }
 
-  static const _baseIntervalMillis = 144.0;
-
-  RollEntry? _getFixedEntrant(String fixedPrize,) {
-    final idx = _unrolledEntries.indexWhere((entry) => entry.fixedPrize == fixedPrize,);
-    if (idx >= 0) {
-      return _unrolledEntries[idx];
+  void _fillWinners(RollPrize prize,) {
+    final count = prize.count;
+    final fixedEntries = Map<String, bool>.fromEntries(
+      (prize.fixedEntries ?? []).map((e) => MapEntry(e, true,),),
+    );
+    final List<RollEntry> unrolledCopy = [];
+    final List<RollEntry> fixedUnrolledCopy = [];
+    final chosenEntriesMap = <String, bool>{};
+    for (var entry in _unrolledEntries) {
+      if (fixedEntries[entry.id] == true) {
+        fixedUnrolledCopy.add(entry,);
+      } else {
+        unrolledCopy.add(entry,);
+      }
     }
-    return null;
+    final List<RollEntry> entrantsToAdd = [];
+    for (int i = 0; i < count; i++) {
+      late final RollEntry selectedEntry;
+      if (fixedUnrolledCopy.isNotEmpty) {
+        selectedEntry = fixedUnrolledCopy.removeAt(0,)..wonPrize = prize.name;
+        entrantsToAdd.add(
+          selectedEntry,
+        );
+      } else {
+        selectedEntry = unrolledCopy.removeAt(
+          _random.nextInt(unrolledCopy.length,),
+        )..wonPrize = prize.name;
+        entrantsToAdd.add(
+          selectedEntry,
+        );
+      }
+      chosenEntriesMap[selectedEntry.id] = true;
+    }
+    _rolledEntries.addAll(entrantsToAdd,);
+    _unrolledEntries.removeWhere(
+      (entry) => chosenEntriesMap[entry.id] == true,
+    );
+    _prizes.removeAt(0,);
+    update();
   }
 
   Future<void> stop() async {
@@ -155,36 +198,11 @@ class HomeController extends GetxControllerPlus {
     }
     final currentPrize = this.currentPrize;
     if (currentPrize == null || _unrolledEntries.isEmpty) return;
-    final fixedEntrant = _getFixedEntrant(currentPrize,);
 
     _waitTimer?.cancel();
-    double millis = _baseIntervalMillis;
-    while (millis < 1210) {
-      await Future.delayed(
-        Duration(milliseconds: millis.floor(),),
-      );
-      _showRandom();
-      millis *= 1.1;
-    }
-    if (fixedEntrant != null) {
-      fixedEntrant.wonPrize = _prizes.removeAt(0,);
-      _rolledEntries.add(fixedEntrant,);
-      _unrolledEntries.remove(fixedEntrant,);
-    } else {
-      var current = _selectedEntry.value;
-      if (current != null) {
-        if (current.fixedPrize != null) {
-          final nonFixedEntries = _unrolledEntries.where(
-            (entry) => entry.fixedPrize == null,
-          ).toList(growable: false,);
-          current = nonFixedEntries[_random.nextInt(nonFixedEntries.length,)];
-        }
-        current.wonPrize = _prizes.removeAt(0,);
-        _rolledEntries.add(current,);
-        _unrolledEntries.remove(current,);
-      }
-    }
-    update();
+    _selectedEntry.value = null;
+
+    _fillWinners(currentPrize,);
   }
 
   @override
@@ -206,7 +224,6 @@ class HomeController extends GetxControllerPlus {
 
   @override
   void onClose() {
-    _entries.close();
     _rolledEntries.close();
     _unrolledEntries.close();
     _waitTimer?.cancel();

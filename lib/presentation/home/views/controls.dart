@@ -25,7 +25,7 @@ class Controls extends GetView<HomeController> {
             ),
             Obx(
               () => Text(
-                controller.currentPrize ?? "-",
+                controller.currentPrize?.name ?? "-",
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 20.0,

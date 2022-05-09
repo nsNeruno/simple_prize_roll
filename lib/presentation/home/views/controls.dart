@@ -20,7 +20,7 @@ class Controls extends GetView<HomeController> {
               "Hadiah saat ini",
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 18.0, fontWeight: FontWeight.bold,
+                fontSize: 48.0, fontWeight: FontWeight.bold,
               ),
             ),
             Obx(
@@ -28,7 +28,7 @@ class Controls extends GetView<HomeController> {
                 controller.currentPrize?.name ?? "-",
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                  fontSize: 20.0,
+                  fontSize: 48.0,
                   fontWeight: FontWeight.w900,
                 ),
               ),
@@ -42,7 +42,7 @@ class Controls extends GetView<HomeController> {
               "Pemenang terpilih",
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 18.0,
+                fontSize: 48.0,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -50,7 +50,7 @@ class Controls extends GetView<HomeController> {
               () => Text(
                 controller.selectedEntry?.id ?? "-",
                 style: const TextStyle(
-                  fontSize: 20.0,
+                  fontSize: 44.0,
                   fontWeight: FontWeight.w900,
                 ),
               ),

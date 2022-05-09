@@ -46,15 +46,17 @@ class HomePage extends GetView<HomeController> {
                 children: const [
                   Expanded(
                     child: WinnerList(),
+                    flex: 7,
                   ),
                   SizedBox(width: 20.0,),
-                  RandomSelectText(),
                   Expanded(
                     child: ParticipantList(),
+                    flex: 3,
                   ),
                   SizedBox(width: 20.0,),
                   Expanded(
                     child: Controls(),
+                    flex: 7,
                   ),
                 ],
               ),

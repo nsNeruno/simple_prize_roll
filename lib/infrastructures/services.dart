@@ -38,7 +38,7 @@ class MenuProviderService extends GetxService {
                       final path = files.first.path;
                       if (path != null) {
                         final file = File(path,);
-                        Get.find<ExcelReaderService>().readFile(file: file,);
+                        Get.find<ExcelProviderService>().readFile(file: file,);
                       }
                     }
                   },
@@ -74,7 +74,7 @@ class InputFileProviderService extends GetxService {
   }
 }
 
-class ExcelReaderService extends GetxService {
+class ExcelProviderService extends GetxService {
 
   final _excel = Rxn<Excel>();
   Excel? get excel => _excel.value;
@@ -89,6 +89,30 @@ class ExcelReaderService extends GetxService {
     } catch (err) {
       print(err,);
       return null;
+    }
+  }
+
+  Future<void> saveExcel({required Excel excel, String? fileName,}) async {
+    final savePath = await FilePicker.platform.saveFile(
+      dialogTitle: "Save to Spreadsheet",
+      fileName: fileName,
+      type: FileType.custom,
+      allowedExtensions: [
+        "xlsx", "xls", "csv", "odt",
+      ],
+      lockParentWindow: true,
+    );
+    if (savePath != null) {
+      List<int>? excelBytes;
+      if (fileName != null) {
+        excelBytes = excel.save(fileName: fileName,);
+      } else {
+        excelBytes = excel.save();
+      }
+      if (excelBytes != null) {
+        File file = File(savePath,);
+        file = await file.writeAsBytes(excelBytes, flush: true,);
+      }
     }
   }
 }

@@ -45,7 +45,7 @@ class SimplePrizeRollApp extends StatelessWidget {
             InputFileProviderService(),
           );
           Get.put(
-            ExcelReaderService(),
+            ExcelProviderService(),
           );
         },
       ),

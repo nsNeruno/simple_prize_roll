@@ -205,10 +205,45 @@ class HomeController extends GetxControllerPlus {
     _fillWinners(currentPrize,);
   }
 
+  Future<void> exportWinners() async {
+    final List<RollEntry> winners = List.from(_rolledEntries,);
+    if (winners.isEmpty) {
+      return;
+    }
+    final excel = Excel.createExcel();
+    final defaultSheet = excel.getDefaultSheet();
+    if (defaultSheet == null) return;
+    excel.rename(defaultSheet, "Winners",);
+    final sheet = excel.sheets["Winners"];
+    if (sheet == null) return;
+    sheet.insertRowIterables(
+      [
+        "No.", "AWB", "Hadiah",
+      ],
+      0,
+    );
+    for (int i = 0; i < winners.length; i++) {
+      final entrant = winners[i];
+      final idx = i + 1;
+      sheet.insertRowIterables(
+        [
+          idx.toString(),
+          entrant.id,
+          entrant.wonPrize ?? "",
+        ],
+        idx,
+      );
+    }
+    Get.find<ExcelProviderService>().saveExcel(
+      excel: excel,
+      fileName: "Winner.xlsx",
+    );
+  }
+
   @override
   void onInit() {
     super.onInit();
-    Get.find<ExcelReaderService>().onExcelRead.listen(
+    Get.find<ExcelProviderService>().onExcelRead.listen(
       (excel) {
         if (excel != null) {
           _onExcelRead(excel,);

@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import 'package:simple_prize_roll/presentation/home/controllers/home_controller.dart';
 import 'package:simple_prize_roll/presentation/home/views/controls.dart';
 import 'package:simple_prize_roll/presentation/home/views/participant_list.dart';
-import 'package:simple_prize_roll/presentation/home/views/random_select_text.dart';
 import 'package:simple_prize_roll/presentation/home/views/winner_list.dart';
 
 class HomePage extends GetView<HomeController> {

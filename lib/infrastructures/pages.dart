@@ -10,7 +10,7 @@ class AppPages extends ListBase<GetPage> {
     <GetPage>[
       GetPage(
         name: homePage,
-        page: () => HomePage(),
+        page: () => const HomePage(),
         binding: HomeBindings(),
       ),
     ],
